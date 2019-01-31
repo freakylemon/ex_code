@@ -1,0 +1,82 @@
+'Upload single_BSM_delta_hedging code, in VBA format.
+
+Option Explicit
+Function OptionSim( _
+    s As Double, _
+    k As Double, _
+    r As Double, _
+    miu As Double, _
+    sigma As Double, _
+    T As Double, _
+    N As Integer) As Variant
+
+Dim d1 As Double, _
+    d2 As Double, _
+    nd1 As Double, _
+    nd2 As Double, _
+    CoP As Double
+
+d1 = (Application.WorksheetFunction.Ln(s / k) + (r + 0.5 * (sigma ^ 2)) * T) / (sigma * Sqr(T))
+d2 = (d1 - (sigma * Sqr(T)))
+nd1 = Application.WorksheetFunction.NormSDist(d1)
+nd2 = Application.WorksheetFunction.NormSDist(d2)
+CoP = s * nd1 - k * Exp(-r * T) * nd2
+Dim st As Double, g As Double
+'g = WorksheetFunction.NormSInv(Rnd())
+st = s '* Exp((miu - 0.5 * (sigma ^ 2)) * (T / N) + sigma * g * (Sqr(T / N)))
+
+Dim pof As Double
+pof = Application.WorksheetFunction.Max(s - k, 0)
+
+Dim nsres As Double
+nsres = nd1
+
+'Dim vsres As Double
+'vsres = nd1 * s
+
+Dim bk As Double
+bk = CoP - nd1 * s
+
+Dim vosc As Double
+vosc = nd1 * s + bk
+
+Dim repliErr As Double
+repliErr = vosc - pof
+'以上这些都是在t0时候的准备
+
+
+Dim i As Integer
+For i = 1 To N - 1
+'Dim st As Double, g As Double
+
+g = Application.WorksheetFunction.NormSInv(Rnd())
+st = st * Exp((miu - 0.5 * (sigma ^ 2)) * (T / N) + sigma * g * Sqr(T / N))
+'这里 要从s开始乘，不然数字怎么样都会很奇怪
+d1 = (Application.WorksheetFunction.Ln(st / k) + (r + 0.5 * (sigma ^ 2)) * (T - i * T / N)) / (sigma * Sqr(T - i * T / N))
+d2 = (d1 - (sigma * Sqr(T - i * T / N)))
+nd1 = Application.WorksheetFunction.NormSDist(d1)
+
+'nd2 = Application.WorksheetFunction.NormSDist(d2)
+'CoP = st * nd1 - k * Exp(-r * (T - i * T / N)) * nd2
+'这option 定价中t保持一致，同时用T好像误差更小
+pof = Application.WorksheetFunction.Max(st - k, 0)
+bk = bk * Exp(r * T / N) + (nsres - nd1) * st '这里修改掉了。
+vosc = nd1 * st + bk
+repliErr = vosc - pof
+nsres = nd1
+
+Next i
+'还有么就是 顺序不能乱！
+
+Dim x(6) As Double
+x(0) = st
+x(1) = pof
+x(2) = nsres
+x(3) = bk
+x(4) = vosc
+x(5) = repliErr
+
+OptionSim = Array(x(0), x(1), x(2), x(3), x(4), x(5))
+
+
+End Function
