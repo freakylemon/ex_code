@@ -1,0 +1,246 @@
+'1.d_ 3
+'在excel 表格中可以创建一个1000*1 的表格的公式 for repliErr
+
+Option Explicit
+Function OptionSim( _
+    s As Double, _
+    k As Double, _
+    r As Double, _
+    miu As Double, _
+    sigma As Double, _
+    T As Double, _
+    N As Integer) As Variant
+
+Dim d1 As Double, _
+    d2 As Double, _
+    nd1 As Double, _
+    nd2 As Double, _
+    CoP As Double
+
+Dim j As Integer
+For j = 1 To 1000
+
+d1 = (Application.WorksheetFunction.Ln(s / k) + (r + 0.5 * (sigma ^ 2)) * T) / (sigma * Sqr(T))
+d2 = (d1 - (sigma * Sqr(T)))
+nd1 = Application.WorksheetFunction.NormSDist(d1)
+nd2 = Application.WorksheetFunction.NormSDist(d2)
+CoP = s * nd1 - k * Exp(-r * T) * nd2
+Dim st As Double, g As Double
+'g = WorksheetFunction.NormSInv(Rnd())
+st = s '* Exp((miu - 0.5 * (sigma ^ 2)) * (T / N) + sigma * g * (Sqr(T / N)))
+
+Dim pof As Double
+pof = Application.WorksheetFunction.Max(s - k, 0)
+
+Dim nsres As Double
+nsres = nd1
+
+'Dim vsres As Double
+'vsres = nd1 * s
+
+Dim bk As Double
+bk = CoP - nd1 * s
+
+Dim vosc As Double
+vosc = nd1 * s + bk
+
+Dim repliErr As Double
+repliErr = vosc - pof
+'以上这些都是在t0时候的准备
+
+
+Dim i As Integer
+For i = 1 To N - 1
+
+
+g = Application.WorksheetFunction.NormSInv(Rnd())
+st = st * Exp((miu - 0.5 * (sigma ^ 2)) * (T / N) + sigma * g * Sqr(T / N))
+
+d1 = (Application.WorksheetFunction.Ln(st / k) + (r + 0.5 * (sigma ^ 2)) * (T - i * T / N)) / (sigma * Sqr(T - i * T / N))
+d2 = (d1 - (sigma * Sqr(T - i * T / N)))
+nd1 = Application.WorksheetFunction.NormSDist(d1)
+
+
+pof = Application.WorksheetFunction.Max(st - k, 0)
+bk = bk * Exp(r * T / N) + (nsres - nd1) * st
+vosc = nd1 * st + bk
+repliErr = vosc - pof
+nsres = nd1
+
+Next i
+'还有么就是 顺序不能乱！
+
+Dim myarray(1 To 1000) As Double
+myarray(j) = repliErr
+Next j
+
+OptionSim = Application.WorksheetFunction.Transpose(myarray)
+
+End Function
+
+'1.e_1.f_ necessary for plotting
+
+
+Option Explicit
+Function OptionSim( _
+    s As Double, _
+    k As Double, _
+    r As Double, _
+    miu As Double, _
+    sigma As Double, _
+    T As Double, _
+    N As Integer) As Variant
+
+Dim d1 As Double, _
+    d2 As Double, _
+    nd1 As Double, _
+    nd2 As Double, _
+    CoP As Double
+
+Dim j As Integer
+For j = 1 To 1000
+
+d1 = (Application.WorksheetFunction.Ln(s / k) + (r + 0.5 * (sigma ^ 2)) * T) / (sigma * Sqr(T))
+d2 = (d1 - (sigma * Sqr(T)))
+nd1 = Application.WorksheetFunction.NormSDist(d1)
+nd2 = Application.WorksheetFunction.NormSDist(d2)
+CoP = s * nd1 - k * Exp(-r * T) * nd2
+Dim st As Double, g As Double
+'g = WorksheetFunction.NormSInv(Rnd())
+st = s '* Exp((miu - 0.5 * (sigma ^ 2)) * (T / N) + sigma * g * (Sqr(T / N)))
+
+Dim pof As Double
+pof = Application.WorksheetFunction.Max(s - k, 0)
+
+Dim nsres As Double
+nsres = nd1
+
+'Dim vsres As Double
+'vsres = nd1 * s
+
+Dim bk As Double
+bk = CoP - nd1 * s
+
+Dim vosc As Double
+vosc = nd1 * s + bk
+
+Dim repliErr As Double
+repliErr = vosc - pof
+'以上这些都是在t0时候的准备
+
+
+Dim i As Integer
+For i = 1 To N - 1
+
+
+g = Application.WorksheetFunction.NormSInv(Rnd())
+st = st * Exp((miu - 0.5 * (sigma ^ 2)) * (T / N) + sigma * g * Sqr(T / N))
+
+d1 = (Application.WorksheetFunction.Ln(st / k) + (r + 0.5 * (sigma ^ 2)) * (T - i * T / N)) / (sigma * Sqr(T - i * T / N))
+d2 = (d1 - (sigma * Sqr(T - i * T / N)))
+nd1 = Application.WorksheetFunction.NormSDist(d1)
+
+
+pof = Application.WorksheetFunction.Max(st - k, 0)
+bk = bk * Exp(r * T / N) + (nsres - nd1) * st
+vosc = nd1 * st + bk
+repliErr = vosc - pof
+nsres = nd1
+
+Next i
+'还有么就是 顺序不能乱！
+
+Dim myarray(1 To 2, 1 To 1000) As Double
+myarray(1, j) = st
+myarray(2, j) = repliErr
+Next j
+
+OptionSim = Application.WorksheetFunction.Transpose(myarray)
+
+End Function
+
+'1.g_计算一个6* 1000的matrix： 仅修改了最后的matrix
+
+
+Option Explicit
+Function OptionSim( _
+    s As Double, _
+    k As Double, _
+    r As Double, _
+    miu As Double, _
+    sigma As Double, _
+    T As Double, _
+    N As Integer) As Variant
+
+Dim d1 As Double, _
+    d2 As Double, _
+    nd1 As Double, _
+    nd2 As Double, _
+    CoP As Double
+
+Dim j As Integer
+For j = 1 To 1000
+
+d1 = (Application.WorksheetFunction.Ln(s / k) + (r + 0.5 * (sigma ^ 2)) * T) / (sigma * Sqr(T))
+d2 = (d1 - (sigma * Sqr(T)))
+nd1 = Application.WorksheetFunction.NormSDist(d1)
+nd2 = Application.WorksheetFunction.NormSDist(d2)
+CoP = s * nd1 - k * Exp(-r * T) * nd2
+Dim st As Double, g As Double
+'g = WorksheetFunction.NormSInv(Rnd())
+st = s '* Exp((miu - 0.5 * (sigma ^ 2)) * (T / N) + sigma * g * (Sqr(T / N)))
+
+Dim pof As Double
+pof = Application.WorksheetFunction.Max(s - k, 0)
+
+Dim nsres As Double
+nsres = nd1
+
+'Dim vsres As Double
+'vsres = nd1 * s
+
+Dim bk As Double
+bk = CoP - nd1 * s
+
+Dim vosc As Double
+vosc = nd1 * s + bk
+
+Dim repliErr As Double
+repliErr = vosc - pof
+'以上这些都是在t0时候的准备
+
+
+Dim i As Integer
+For i = 1 To N - 1
+
+
+g = Application.WorksheetFunction.NormSInv(Rnd())
+st = st * Exp((miu - 0.5 * (sigma ^ 2)) * (T / N) + sigma * g * Sqr(T / N))
+
+d1 = (Application.WorksheetFunction.Ln(st / k) + (r + 0.5 * (sigma ^ 2)) * (T - i * T / N)) / (sigma * Sqr(T - i * T / N))
+d2 = (d1 - (sigma * Sqr(T - i * T / N)))
+nd1 = Application.WorksheetFunction.NormSDist(d1)
+nd2 = Application.WorksheetFunction.NormSDist(d2)
+CoP = s * nd1 - k * Exp(-r * T) * nd2
+
+pof = Application.WorksheetFunction.Max(st - k, 0)
+bk = bk * Exp(r * T / N) + (nsres - nd1) * st
+vosc = nd1 * st + bk
+repliErr = vosc - pof
+nsres = nd1
+
+Next i
+'还有么就是 顺序不能乱！
+
+Dim myarray(1 To 6, 1 To 1000) As Double
+myarray(1, j) = st
+myarray(2, j) = CoP
+myarray(3, j) = pof
+myarray(4, j) = nsres
+myarray(5, j) = vosc
+myarray(6, j) = repliErr
+Next j
+
+OptionSim = Application.WorksheetFunction.Transpose(myarray)
+
+End Function
